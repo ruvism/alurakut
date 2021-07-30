@@ -27,7 +27,7 @@ const GlobalStyle = createGlobalStyle`
     display: block;
   }
 
-  {AlurakutStyles}
+  ${AlurakutStyles}
 
 `
 
