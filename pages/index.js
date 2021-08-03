@@ -1,5 +1,6 @@
-// import styled from 'styled-components';
 import React from 'react';
+import nookies from 'nookies';
+import jwt from 'jsonwebtoken';
 import MainGrid from '../src/components/MainGrid';
 import Box from '../src/components/Box';
 import { AlurakutMenu, OrkutNostalgicIconSet, AlurakutProfileSidebarMenuDefault } from '../src/lib/AlurakutCommons' ; 
@@ -22,31 +23,31 @@ function ProfileSideBar(props){
   )
 }
 
-function ProfileRelationsBox(props){
-  return (
-    <ProfileRelationsBoxWrapper>
-      <h2 className= "smallTitle">
-        {props.title} ({props.items.length})
-      </h2>
-      <ul>
-        {/* {seguidores.map((item) => {
-          return (
-            <li  key= {item}>
-              <a href={`/users/${item}`}>
-                  <img src={`https://github.com/${item}.png`} style={{ borderRadius: '8px'}} />
-                <span>{item}</span>
-              </a>
-            </li>
-          )
-        })} */}
-      </ul>
-    </ProfileRelationsBoxWrapper>
-  )
-}
+// function ProfileRelationsBox(props){
+//   return (
+//     <ProfileRelationsBoxWrapper>
+//       <h2 className= "smallTitle">
+//         {props.title} ({props.items.length})
+//       </h2>
+//       <ul>
+//         {/* {seguidores.map((item) => {
+//           return (
+//             <li  key= {item}>
+//               <a href={`/users/${item}`}>
+//                   <img src={`https://github.com/${item}.png`} style={{ borderRadius: '8px'}} />
+//                 <span>{item}</span>
+//               </a>
+//             </li>
+//           )
+//         })} */}
+//       </ul>
+//     </ProfileRelationsBoxWrapper>
+//   )
+// }
 
-export default function Home() {
-  const nomePerfil = 'Rúvila';
-  const githubUser = 'ruvism';
+export default function Home( props ) {
+  const githubUser = props.githubUser;
+  // const nomePerfil = githubUser.name;
   const [comunidades, setComunidades] =  React.useState([]);
   const pessoasComunidade = [
     'backinkansas', 
@@ -104,7 +105,7 @@ export default function Home() {
         <div className="welcomeArea" style={{ gridArea: 'welcomeArea'}}>
           <Box>
             <h1>
-              Bem-vinde, {nomePerfil}!
+              Bem-vinde!
             </h1>
             <OrkutNostalgicIconSet />
           </Box>
@@ -166,10 +167,10 @@ export default function Home() {
           </Box>
         </div>
         <div className="profileRelationsArea" style={{ gridArea: 'profileRelationsArea'}}>
-          <ProfileRelationsBox title="Seguidores" items={seguidores}/>
+          {/* <ProfileRelationsBox title="Seguidores" items={seguidores}/> */}
           <ProfileRelationsBoxWrapper>
             <h2 className= "smallTitle">
-              Pessoas da comunidade ({pessoasComunidade.length})
+              Pessoas que admiro ({pessoasComunidade.length})
             </h2>
             <ul>
               {pessoasComunidade.map((pessoa) => {
@@ -205,4 +206,31 @@ export default function Home() {
       </MainGrid>
     </>
   )
+}
+
+export async function getServerSideProps(context) {
+  const cookies = nookies.get(context)
+  const token = cookies.USER_TOKEN
+  const { isAuthenticated } = await fetch('https://alurakut.vercel.app/api/auth', {
+    headers: {
+      Authorization: token  
+    }
+  })
+  .then((resposta) => resposta.json())
+  
+  if(!isAuthenticated ){
+    return{
+      redirect: {
+        destination: '/login',
+        permanent: false,
+      }
+    }
+  }
+  
+  const { githubUser } = jwt.decode(token);
+  return {
+    props: {
+      githubUser
+    }, 
+  }
 }
